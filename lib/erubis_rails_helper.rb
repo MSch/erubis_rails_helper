@@ -8,13 +8,10 @@ begin
 rescue LoadError
   $stderr.puts %[This erubis_rails requires erubis 2.6.4\n
                  Add "config.gem 'erubis', :version => 2.6.4" to config/environment.rb]
-end  
+end
 
 require 'erubis_rails_helper/erubis/generator'
 require 'erubis_rails_helper/template_handlers/erubis'
 
 ## finish
-if defined?(Rails) and defined?(ActionController)
-  ActionController::Base.new.logger.info "** Erubis #{::Erubis::VERSION}"
-end
 $stdout.puts "** Erubis #{::Erubis::VERSION}"
