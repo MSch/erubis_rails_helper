@@ -90,7 +90,7 @@ module Erubis
       str << "\#{#{code}}"
     end
   end
-  
+
   module OutputBufferEnhancer
     def self.desc   # :nodoc:
       "set '@output_buffer = _buf = \"\";'"
@@ -105,19 +105,17 @@ module Erubis
       src << "@output_buffer.to_s\n"
     end
   end
-  
+
   class Eruby
     include ::Erubis::PercentLineEnhancer
-    include ::Erubis::DeleteIndentEnhancer
-    include OutputBufferEnhancer    
+    include OutputBufferEnhancer
   end
 
   class FastEruby
     include ::Erubis::PercentLineEnhancer
-    include ::Erubis::DeleteIndentEnhancer    
-    include OutputBufferEnhancer    
-  end  
-  
+    include OutputBufferEnhancer
+  end
+
   module Helpers
     ##
     ## helper module for Ruby on Rails
@@ -137,7 +135,7 @@ module Erubis
     ## if Erubis::Helper::Rails.show_src is true, Erubis prints converted Ruby code
     ## into log file ('log/development.log' or so). if false, it doesn't.
     ## if nil, Erubis prints converted Ruby code if ENV['RAILS_ENV'] == 'development'.
-    ##  
+    ##
     module RailsHelper
       #cattr_accessor :init_properties
       @@engine_class = ::Erubis::Eruby
@@ -174,39 +172,39 @@ module Erubis
       end
       def self.preprocessing=(flag)
         @@preprocessing = flag
-      end    
-      
+      end
+
       ## define class for backward-compatibility
       class PreprocessingEruby < Erubis::PreprocessingEruby   # :nodoc:
       end
-        
+
       module TemplateConverter
         def _convert_template(template)    # :nodoc:
-          
+
           klass      = ::Erubis::Helpers::RailsHelper.engine_class
           properties = ::Erubis::Helpers::RailsHelper.init_properties || {}
-          
+
           if preprocess?
             preprocessor = _create_preprocessor(template)
-            template = preprocessor.evaluate(_preprocessing_context_object())        
+            template = preprocessor.evaluate(_preprocessing_context_object())
           end
-          
+
           src = klass.new(template, properties.merge(:eoutvar => "@output_buffer")).src
           return src
         end
-        
+
         def _create_preprocessor(template)
           return PreprocessingEruby.new(template, :escape=>true)
         end
-        
+
         def _preprocessing_context_object
           return self
         end
-        
+
         def preprocess?
           ::Erubis::Helpers::RailsHelper.preprocessing
         end
-      end      
+      end
     end
   end
 end
@@ -214,7 +212,7 @@ end
 class ActionView::Base   # :nodoc:
   include ::Erubis::Helpers::RailsHelper::TemplateConverter
   include ::Erubis::PreprocessingHelper
-  
+
   private
   # convert template into ruby code
   def convert_template_into_ruby_code(template)
@@ -231,28 +229,28 @@ module ActionView
       include ::Erubis::PreprocessingHelper
 
       def compile(template)
-        src =  _convert_template("<% __in_erb_template=true %>#{template.source}") 
-        
+        src =  _convert_template("<% __in_erb_template=true %>#{template.source}")
+
         if show_source?
           logger.debug("** Erubis: src==<<'END'\n#{src}END\n") if logger
         end
-        
+
         # Ruby 1.9 prepends an encoding to the source. However this is
         # useless because you can only set an encoding on the first line
-        RUBY_VERSION >= '1.9' ? src.sub(/\A#coding:.*\n/, '') : src        
+        RUBY_VERSION >= '1.9' ? src.sub(/\A#coding:.*\n/, '') : src
       end
-     
+
       protected
       def logger
         @logger ||= ActionController::Base.new.logger
-      end    
+      end
 
       def show_source?
         return ::Erubis::Helpers::RailsHelper.show_src if not ::Erubis::Helpers::RailsHelper.show_src.nil?
         ENV['RAILS_ENV'] == 'development' if ::Erubis::Helpers::RailsHelper.show_src.nil?
-      end 
+      end
     end
-    
+
     handler_klass = TemplateHandlers::Erubis
     Template.register_default_template_handler(:erb, handler_klass)
     Template.register_template_handler(:rhtml, handler_klass)
